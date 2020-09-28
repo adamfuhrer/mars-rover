@@ -30,32 +30,32 @@ describe('AppComponent', () => {
 
   it(`should validate plateau input string as invalid input`, () => {
     component.setPlateau('5 5 5');
-    expect(component.isIncorrectPlateauInput).toBe(true);
+    expect(component.isCorrectPlateauInput).toBe(false);
   });
 
   it(`should validate plateau input string as valid input`, () => {
     component.setPlateau('10 10');
-    expect(component.isIncorrectPlateauInput).toBe(false);
+    expect(component.isCorrectPlateauInput).toBe(true);
   });
 
   it(`should validate landing input string as invalid input`, () => {
     component.setLanding('1 2 G');
-    expect(component.isIncorrectLandingInput).toBe(true);
+    expect(component.isCorrectLandingInput).toBe(false);
   });
 
   it(`should validate landing input string as valid input`, () => {
     component.setLanding('1 2 N');
-    expect(component.isIncorrectLandingInput).toBe(false);
+    expect(component.isCorrectLandingInput).toBe(true);
   });
 
   it(`should validate instructions input string as invalid input`, () => {
     component.setInstructions('LMLMLMLMLMROO');
-    expect(component.isIncorrectInstructionsInput).toBe(true);
+    expect(component.isCorrectInstructionsInput).toBe(false);
   });
 
   it(`should validate instructions input string as valid input`, () => {
     component.setInstructions('LMLMLMLMLMR');
-    expect(component.isIncorrectInstructionsInput).toBe(false);
+    expect(component.isCorrectInstructionsInput).toBe(true);
   });
 
   it(`should get the next direction from 'R' instruction`, () => {

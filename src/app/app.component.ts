@@ -15,15 +15,15 @@ export class AppComponent {
   instructionsInput: string;
 
   // Key data for navigating the rover
-  plateau = [];
-  currentPosition = [];
+  plateau: number[] = [];
+  currentPosition: number[] = [];
   currentOrientation: string;
-  instructions = [];
+  instructions: string[] = [];
 
   // Data validation booleans
-  isIncorrectPlateauInput = false;
-  isIncorrectLandingInput = false;
-  isIncorrectInstructionsInput = false;
+  isCorrectPlateauInput = true;
+  isCorrectLandingInput = true;
+  isCorrectInstructionsInput = true;
 
   // Generated output data
   output: string;
@@ -32,9 +32,9 @@ export class AppComponent {
    * On button click, parse and validate the input data and generate the output co-ordinates and orientation
    */
   onNavigateClick() {
-    this.plateauInput ? this.setPlateau(this.plateauInput) : this.isIncorrectPlateauInput = true;
-    this.landingInput ? this.setLanding(this.landingInput) : this.isIncorrectLandingInput = true;
-    this.instructionsInput ? this.setInstructions(this.instructionsInput) :  this.isIncorrectInstructionsInput = true;
+    this.plateauInput ? this.setPlateau(this.plateauInput) : this.isCorrectPlateauInput = false;
+    this.landingInput ? this.setLanding(this.landingInput) : this.isCorrectLandingInput = false;
+    this.instructionsInput ? this.setInstructions(this.instructionsInput) : this.isCorrectInstructionsInput = false;
 
     if (this.hasValidRoverInput()) {
       const newPosition = this.getNewCoordinatesFromNavigation(this.instructionsInput, this.currentPosition);
@@ -49,14 +49,17 @@ export class AppComponent {
    * @return newCoordinates {number[]}
    */
   getNewCoordinatesFromNavigation(instructions: string, currentPosition: number[]): number[] {
+    const plateauX = this.plateau[0];
+    const plateauY = this.plateau[1];
+
     for (const instruction of instructions) {
       // Handle move instruction
       if (instruction === 'M') {
         // If facing along the x axis for the move operation, get the next x co-ordinate otherwise set next y co-ordinate
         if (this.currentOrientation === 'W' || this.currentOrientation === 'E') {
-          currentPosition[0] = this.getNextXCoordinate(currentPosition[0], this.currentOrientation);
+          currentPosition[0] = this.getNextXCoordinate(currentPosition[0], this.currentOrientation, plateauX);
         } else if (this.currentOrientation === 'N' || this.currentOrientation === 'S') {
-          currentPosition[1] = this.getNextYCoordinate(currentPosition[1], this.currentOrientation);
+          currentPosition[1] = this.getNextYCoordinate(currentPosition[1], this.currentOrientation, plateauY);
         }
       } else {
         // Handle direction change
@@ -90,19 +93,17 @@ export class AppComponent {
    * Get the next X co-ordinate based on direction and boundaries of the plateau
    * @param currentX    Current Y cord {number}
    * @param direction   Direction to navigate {string}
+   * @param plateauX    The upper X limit of the plateau {number}
    * @return nextCord {number}
    */
-  getNextXCoordinate(currentX: number, direction: string): number {
-    // We assume the plateau boundaries are set
-    if (this.plateau) {
-      if (direction === 'W' && currentX - 1 >= 0) {
-        return currentX - 1;
-      } else if (direction === 'E' && currentX + 1 <= this.plateau[0]) {
-        return currentX + 1;
-      } else {
-        // The bounds of the plateau have been reached
-        return currentX;
-      }
+  getNextXCoordinate(currentX: number, direction: string, plateauX: number): number {
+    if (direction === 'W' && currentX - 1 >= 0) {
+      return currentX - 1;
+    } else if (direction === 'E' && currentX + 1 <= plateauX) {
+      return currentX + 1;
+    } else {
+      // The bounds of the plateau have been reached
+      return currentX;
     }
   }
 
@@ -110,19 +111,17 @@ export class AppComponent {
    * Get the next Y co-ordinate based on direction and boundaries of the plateau
    * @param currentY    Current Y cord {number}
    * @param direction   Direction to navigate {string}
+   * @param plateauY    The upperX Y limit of the plateau {number}
    * @return nextCord {number}
    */
-  getNextYCoordinate(currentY: number, direction: string): number {
-    // We assume the plateau boundaries are set
-    if (this.plateau) {
-      if (direction === 'N' && currentY + 1 <= this.plateau[1]) {
-        return currentY + 1;
-      } else if (direction === 'S' && currentY - 1 >= 0) {
-        return currentY - 1;
-      } else {
-        // The bounds of the plateau have been reached
-        return currentY;
-      }
+  getNextYCoordinate(currentY: number, direction: string, plateauY: number): number {
+    if (direction === 'N' && currentY + 1 <= plateauY) {
+      return currentY + 1;
+    } else if (direction === 'S' && currentY - 1 >= 0) {
+      return currentY - 1;
+    } else {
+      // The bounds of the plateau have been reached
+      return currentY;
     }
   }
 
@@ -137,11 +136,11 @@ export class AppComponent {
     const plateauY = Number(plateau[1]);
 
     // Validate the input
-    this.isIncorrectPlateauInput = plateau.length !== 2
-      || !Number.isInteger(plateauX)
-      || !Number.isInteger(plateauY);
+    this.isCorrectPlateauInput = plateau.length === 2
+      && Number.isInteger(plateauX)
+      && Number.isInteger(plateauY);
 
-    if (!this.isIncorrectPlateauInput) {
+    if (this.isCorrectPlateauInput) {
       this.plateau[0] = plateauX;
       this.plateau[1] = plateauY;
     }
@@ -159,12 +158,12 @@ export class AppComponent {
     const direction = landing[2];
 
     // Validate the input
-    this.isIncorrectLandingInput = landing.length !== 3
-      || !Number.isInteger(currentX)
-      || !Number.isInteger(currentY)
-      || !this.isOrientation(direction);
+    this.isCorrectLandingInput = landing.length === 3
+      && Number.isInteger(currentX)
+      && Number.isInteger(currentY)
+      && this.isOrientation(direction);
 
-    if (!this.isIncorrectLandingInput) {
+    if (this.isCorrectLandingInput) {
       this.currentPosition[0] = currentX;
       this.currentPosition[1] = currentY;
       this.currentOrientation = direction;
@@ -178,9 +177,9 @@ export class AppComponent {
    */
   setInstructions(instructionsInput: string): void {
     const instructions = instructionsInput.trim().split('');
-    this.isIncorrectInstructionsInput = !instructions.every(instruction => this.isNavigationInstruction(instruction));
+    this.isCorrectInstructionsInput = instructions.every(instruction => this.isNavigationInstruction(instruction));
 
-    if (!this.isIncorrectLandingInput) {
+    if (this.isCorrectLandingInput) {
       this.instructions = instructions;
     }
   }
@@ -208,6 +207,6 @@ export class AppComponent {
    * @return boolean
    */
   hasValidRoverInput(): boolean {
-    return !this.isIncorrectPlateauInput && !this.isIncorrectLandingInput && !this.isIncorrectInstructionsInput;
+    return this.isCorrectPlateauInput && this.isCorrectLandingInput && this.isCorrectInstructionsInput;
   }
 }
