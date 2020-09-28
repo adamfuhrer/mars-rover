@@ -1,31 +1,92 @@
-import { TestBed, async } from '@angular/core/testing';
+import {TestBed, async, ComponentFixture} from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import {FormsModule} from '@angular/forms';
 
 describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
         AppComponent
       ],
+      imports: [
+        FormsModule
+      ]
     }).compileComponents();
   }));
 
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.debugElement.componentInstance;
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'mars-rover'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('mars-rover');
+  it(`should validate plateau input string as invalid input`, () => {
+    component.setPlateau('5 5 5');
+    expect(component.isIncorrectPlateauInput).toBe(true);
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('mars-rover app is running!');
+  it(`should validate plateau input string as valid input`, () => {
+    component.setPlateau('10 10');
+    expect(component.isIncorrectPlateauInput).toBe(false);
+  });
+
+  it(`should validate landing input string as invalid input`, () => {
+    component.setLanding('1 2 G');
+    expect(component.isIncorrectLandingInput).toBe(true);
+  });
+
+  it(`should validate landing input string as valid input`, () => {
+    component.setLanding('1 2 N');
+    expect(component.isIncorrectLandingInput).toBe(false);
+  });
+
+  it(`should validate instructions input string as invalid input`, () => {
+    component.setInstructions('LMLMLMLMLMROO');
+    expect(component.isIncorrectInstructionsInput).toBe(true);
+  });
+
+  it(`should validate instructions input string as valid input`, () => {
+    component.setInstructions('LMLMLMLMLMR');
+    expect(component.isIncorrectInstructionsInput).toBe(false);
+  });
+
+  it(`should get the next direction from 'R' instruction`, () => {
+    expect(component.getNextDirection('R', 'N')).toBe('E');
+  });
+
+  it(`should get the next direction from 'L' instruction`, () => {
+    expect(component.getNextDirection('L', 'N')).toBe('W');
+  });
+
+  it(`should perform navigation of the mars rover and return new co-ordinates`, () => {
+    component.currentOrientation = 'N';
+    component.plateau = [5, 5];
+    const newCords = component.getNewCoordinatesFromNavigation('LMLMLMLMM', [1, 2]);
+    expect(newCords[0]).toEqual(1);
+    expect(newCords[1]).toEqual(3);
+  });
+
+  it(`should stay within the bounds of the plateau when performing navigation`, () => {
+    component.currentOrientation = 'N';
+    component.plateau = [5, 5];
+    const newCords = component.getNewCoordinatesFromNavigation('MMMMMRMMMMM', [5, 5]);
+    expect(newCords[0]).toEqual(5);
+    expect(newCords[1]).toEqual(5);
+  });
+
+  it(`should output new co-ordinates and current direction on navigation button click`, () => {
+    component.plateauInput = '5 5';
+    component.landingInput = '1 2 N';
+    component.instructionsInput = 'LMLMLMLMM';
+    component.onNavigateClick();
+    expect(component.output).toEqual('1 3 N');
   });
 });
